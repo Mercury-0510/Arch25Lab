@@ -1,0 +1,60 @@
+$ sudo perf stat ./dist/bins/lab1_gemm 256 256 256
+GEMM performance info:
+                M, K, N: 256, 256, 256
+                Ops: 0.0335544
+                Total compute time(s): 1.70928
+                Cost(s): 0.00854641
+                Benchmark(Gflops): 3.92614
+
+ Performance counter stats for './dist/bins/lab1_gemm 256 256 256':
+
+          1,804.85 msec task-clock                       #    1.000 CPUs utilized             
+                12      context-switches                 #    6.649 /sec                      
+                 5      cpu-migrations                   #    2.770 /sec                      
+               333      page-faults                      #  184.503 /sec                      
+    31,118,422,415      cpu_atom/instructions/           #    4.55  insn per cycle              (0.05%)
+    49,496,691,963      cpu_core/instructions/           #    5.28  insn per cycle              (99.95%)
+     6,840,594,114      cpu_atom/cycles/                 #    3.790 GHz                         (0.05%)
+     9,379,102,314      cpu_core/cycles/                 #    5.197 GHz                         (99.95%)
+     2,229,301,895      cpu_atom/branches/               #    1.235 G/sec                       (0.05%)
+     3,544,305,713      cpu_core/branches/               #    1.964 G/sec                       (99.95%)
+         9,173,838      cpu_atom/branch-misses/          #    0.41% of all branches             (0.05%)
+        13,866,755      cpu_core/branch-misses/          #    0.39% of all branches             (99.95%)
+             TopdownL1 (cpu_core)                 #      0.8 %  tma_backend_bound      
+                                                  #      2.0 %  tma_bad_speculation    
+                                                  #     15.6 %  tma_frontend_bound     
+                                                  #     81.6 %  tma_retiring             (99.95%)
+                                                  #      5.1 %  tma_bad_speculation    
+                                                  #     91.0 %  tma_retiring             (0.05%)
+                                                  #      3.5 %  tma_backend_bound      
+                                                  #      0.4 %  tma_frontend_bound       (0.05%)
+
+       1.805481944 seconds time elapsed
+
+       1.800481000 seconds user
+       0.000997000 seconds sys
+
+
+$ sudo perf stat -e L1-dcache-loads,L1-dcache-load-misses,dTLB-loads,dTLB-load-misses ./dist/bins/lab1_gemm 256 256 256
+GEMM performance info:
+                M, K, N: 256, 256, 256
+                Ops: 0.0335544
+                Total compute time(s): 1.80991
+                Cost(s): 0.00904953
+                Benchmark(Gflops): 3.70787
+
+ Performance counter stats for './dist/bins/lab1_gemm 256 256 256':
+
+     <not counted>      cpu_atom/L1-dcache-loads/                                               (0.00%)
+     7,072,478,352      cpu_core/L1-dcache-loads/                                             
+   <not supported>      cpu_atom/L1-dcache-load-misses/                                       
+        24,261,593      cpu_core/L1-dcache-load-misses/  #    0.34% of all L1-dcache accesses 
+     <not counted>      cpu_atom/dTLB-loads/                                                    (0.00%)
+     7,072,478,352      cpu_core/dTLB-loads/                                                  
+     <not counted>      cpu_atom/dTLB-load-misses/                                              (0.00%)
+             2,525      cpu_core/dTLB-load-misses/       #    0.00% of all dTLB cache accesses
+
+       1.900530602 seconds time elapsed
+
+       1.892647000 seconds user
+       0.000947000 seconds sys

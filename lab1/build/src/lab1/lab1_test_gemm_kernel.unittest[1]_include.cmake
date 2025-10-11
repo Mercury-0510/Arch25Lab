@@ -1,0 +1,5 @@
+if(EXISTS "/home/rhye7/Arch25Lab/lab1/build/src/lab1/lab1_test_gemm_kernel.unittest[1]_tests.cmake")
+  include("/home/rhye7/Arch25Lab/lab1/build/src/lab1/lab1_test_gemm_kernel.unittest[1]_tests.cmake")
+else()
+  add_test(lab1_test_gemm_kernel.unittest_NOT_BUILT lab1_test_gemm_kernel.unittest_NOT_BUILT)
+endif()
