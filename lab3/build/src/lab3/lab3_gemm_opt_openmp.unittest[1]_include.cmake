@@ -1,0 +1,5 @@
+if(EXISTS "/home/rhye7/Arch25Lab/lab3/build/src/lab3/lab3_gemm_opt_openmp.unittest[1]_tests.cmake")
+  include("/home/rhye7/Arch25Lab/lab3/build/src/lab3/lab3_gemm_opt_openmp.unittest[1]_tests.cmake")
+else()
+  add_test(lab3_gemm_opt_openmp.unittest_NOT_BUILT lab3_gemm_opt_openmp.unittest_NOT_BUILT)
+endif()

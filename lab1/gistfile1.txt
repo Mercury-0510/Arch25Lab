@@ -58,3 +58,28 @@ GEMM performance info:
 
        1.892647000 seconds user
        0.000947000 seconds sys
+       
+
+$ sudo perf stat -e L1-dcache-loads,L1-dcache-load-misses,dTLB-loads,dTLB-load-misses ./dist/bins/lab1_gemm 256 256 256
+GEMM performance info:
+                M, K, N: 256, 256, 256
+                Ops: 0.0335544
+                Total compute time(s): 1.72768
+                Cost(s): 0.00863842
+                Benchmark(Gflops): 3.88433
+
+ Performance counter stats for './dist/bins/lab1_gemm 256 256 256':
+
+     4,392,293,796      cpu_atom/L1-dcache-loads/                                               (0.09%)
+     7,073,134,675      cpu_core/L1-dcache-loads/                                               (99.91%)
+   <not supported>      cpu_atom/L1-dcache-load-misses/                                       
+        83,214,038      cpu_core/L1-dcache-load-misses/  #    1.18% of all L1-dcache accesses   (99.91%)
+     4,392,293,796      cpu_atom/dTLB-loads/                                                    (0.09%)
+     7,073,134,675      cpu_core/dTLB-loads/                                                    (99.91%)
+           136,001      cpu_atom/dTLB-load-misses/       #    0.00% of all dTLB cache accesses  (0.09%)
+             5,449      cpu_core/dTLB-load-misses/       #    0.00% of all dTLB cache accesses  (99.91%)
+
+       1.827102629 seconds time elapsed
+
+       1.819522000 seconds user
+       0.002947000 seconds sys

@@ -1,0 +1,138 @@
+.text;
+.p2align 2;
+.global gemm_kernel_opt_prefetch;
+.type gemm_kernel_opt_prefetch, %function;
+
+#define     MAT_C               %rdi
+#define     MAT_A               %rsi
+#define     MAT_B               %r14
+#define     DIM_M               %rcx
+#define     DIM_N               %r8
+#define     DIM_K               %r9
+#define     loop_m              %r10
+#define     loop_k              %r11
+#define     loop_n              %r12
+#define     mat_elem_idx        %r13
+#define     prefetch_elem_idx   %r15
+
+#define     ASTEP               4
+#define     BSTEP               64
+#define     CSTEP               64
+
+
+.macro PUSHD   // 保存原通用寄存器值
+    push %rax
+    push %rbx
+    push %rcx
+    push %rdx
+    push %rsi
+    push %rdi
+    push %rbp
+    push %r8
+    push %r9
+    push %r10
+    push %r11
+    push %r12
+    push %r13
+    push %r14
+    push %r15
+.endm
+
+.macro POPD    // 恢复原通用寄存器值
+    pop %r15
+    pop %r14
+    pop %r13
+    pop %r12
+    pop %r11
+    pop %r10
+    pop %r9
+    pop %r8
+    pop %rbp
+    pop %rdi
+    pop %rsi
+    pop %rdx
+    pop %rcx
+    pop %rbx
+    pop %rax
+.endm
+
+.macro GEMM_INIT
+    mov %rdx, MAT_B
+
+    xor loop_m, loop_m
+    xor loop_k, loop_k
+    xor loop_n, loop_n
+.endm
+
+.macro DO_GEMM
+DO_LOOP_K:
+    xor loop_m, loop_m
+
+DO_LOOP_M:
+    xor loop_n, loop_n
+
+    mov loop_m, %rax
+    mul DIM_K
+    mov %rax, mat_elem_idx
+    add loop_k, mat_elem_idx                // 计算 m*K+k
+    flds (MAT_A, mat_elem_idx, 4)           // 加载 A[m][k]
+
+    // 预取 A[m+ASTEP][k]
+    mov loop_m, prefetch_elem_idx
+    add $ASTEP, prefetch_elem_idx
+    cmp DIM_M, prefetch_elem_idx                 // 比较 m+ASTEP 与 M
+    jge DO_LOOP_N                                // 若 m+ASTEP >= M 则跳过预取
+    
+    // 计算 (m+ASTEP)*K + k = (m*K + k) + 4*K
+    lea (mat_elem_idx, DIM_K, ASTEP), prefetch_elem_idx
+    prefetchta (MAT_A, prefetch_elem_idx, 4)
+
+DO_LOOP_N:
+    mov DIM_N, %rax
+    mul loop_k
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx                // 计算 k*N+n
+    flds (MAT_B, mat_elem_idx, 4)           // 加载 B[k][n]
+
+    mov mat_elem_idx, prefetch_elem_idx
+    add $BSTEP, prefetch_elem_idx
+    prefetch0 (MAT_B, prefetch_elem_idx, 4)        // 预取 B[k][n+BSTEP]
+
+    fmul %st(1), %st(0)                     // 计算A[m][k] * B[k][n]
+
+    mov DIM_N, %rax
+    mul loop_m
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx                // 计算 m*N+n
+    flds (MAT_C, mat_elem_idx, 4)           // 加载 C[m][n]
+
+    mov mat_elem_idx, prefetch_elem_idx
+    add $CSTEP, prefetch_elem_idx
+    prefetch0 (MAT_C, prefetch_elem_idx, 4)        // 预取 C[m][n+CSTEP]
+
+    faddp %st(1), %st(0)                    // 计算 C[m][n] + A[m][k] * B[k][n]
+    fstps (MAT_C, mat_elem_idx, 4)
+
+    add $1, loop_n
+    cmp DIM_N, loop_n
+    jl DO_LOOP_N
+
+    fstp %st(0)                             // 仅弹出元素
+    add $1, loop_m
+    cmp DIM_M, loop_m
+    jl DO_LOOP_M
+
+    add $1, loop_k
+    cmp DIM_K, loop_k
+    jl DO_LOOP_K
+.endm
+
+gemm_kernel_opt_prefetch:
+    PUSHD
+    GEMM_INIT
+    DO_GEMM
+    POPD
+    ret
+    
+
+
