@@ -1,0 +1,11 @@
+# Build directories
+lab1/build/
+lab2/build/
+lab3/build/
+
+# VS Code settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
