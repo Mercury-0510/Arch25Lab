@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googlemock/include -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googlemock -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest/include -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest
 
-CXX_FLAGS = -std=c++14 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fPIC -g
+CXX_FLAGS = -g -std=c++14 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fPIC -g
 

@@ -33,6 +33,8 @@
 #define     mat_b0_8_16          %ymm11
 #define     mat_b0_16_24         %ymm12
 #define     mat_b0_24_32         %ymm13
+#define     mat_temp0            %ymm14
+#define     mat_temp1            %ymm15
 
 .macro PUSHD   // 保存原通用寄存器值
     push %rax
@@ -88,13 +90,27 @@
     vbroadcastss (MAT_A, mat_elem_idx), mat_a0_0_8    // 将A[m][k]广播到AVX寄存器的8个单元
 
     // TODO 练习3: 请添加加载并广播A[m+1][k]-->mat_a1_0_8的逻辑
-
+    add DIM_K, temp_reg
+    mov temp_reg, mat_elem_idx
+    shl $2, mat_elem_idx
+    vbroadcastss (MAT_A, mat_elem_idx), mat_a1_0_8
 .endm
 
 .macro LOAD_MAT_B    // 每次装载矩阵B一行32个元素, 即B[k][n:n+32]
 
     // TODO 练习3: 请添加加载B[k][n:n+32]-->mat_b0_0_8, mat_b0_8_16, mat_b0_16_24, mat_b0_24_32的逻辑
-
+    mov loop_k, %rax
+    mul DIM_N
+    mov %rax, temp_reg
+    add loop_n, temp_reg
+    shl $2, temp_reg
+    vmovups (MAT_B, temp_reg), mat_b0_0_8
+    add $32, temp_reg
+    vmovups (MAT_B, temp_reg), mat_b0_8_16
+    add $32, temp_reg
+    vmovups (MAT_B, temp_reg), mat_b0_16_24
+    add $32, temp_reg
+    vmovups (MAT_B, temp_reg), mat_b0_24_32
 .endm
 
 .macro LOAD_MAT_C
@@ -108,14 +124,26 @@
     shl $2, mat_elem_idx        // 左移，相当于乘4
 
     // TODO 练习3: 请添加加载C[m][n:n+32]-->mat_c0_0_8, mat_c0_8_16, mat_c0_16_24, mat_c0_24_32的逻辑
-
+    vmovups (MAT_C, mat_elem_idx), mat_c0_0_8
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c0_8_16
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c0_16_24
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c0_24_32
     // 装载矩阵C第二行的数据, 即C[m+1][n:n+32]
     mov temp_reg, mat_elem_idx
     add DIM_N, mat_elem_idx
     shl $2, mat_elem_idx        // 左移，相当于乘4
 
     // TODO 练习3: 请添加加载C[m+1][n:n+32]-->mat_c1_0_8, mat_c1_8_16, mat_c1_16_24, mat_c1_24_32的逻辑
-
+    vmovups (MAT_C, mat_elem_idx), mat_c1_0_8
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c1_8_16
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c1_16_24
+    add $32, mat_elem_idx
+    vmovups (MAT_C, mat_elem_idx), mat_c1_24_32
 .endm
 
 .macro STORE_MAT_C
@@ -130,16 +158,49 @@
     shl $2, mat_elem_idx        // 左移，相当于乘4
 
     // TODO 练习3: 请添加保存mat_c0_0_8, mat_c0_8_16, mat_c0_16_24, mat_c0_24_32 --> C[m][n:n+32]的逻辑
-
+    vmovups mat_c0_0_8, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c0_8_16, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c0_16_24, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c0_24_32, (MAT_C, mat_elem_idx)
     // 保存矩阵C第二行的数据, 即C[m+1][n:n+32]
+    mov temp_reg, mat_elem_idx
+    add DIM_N, mat_elem_idx
+    shl $2, mat_elem_idx
     // TODO 练习3: 请添加保存mat_c1_0_8, mat_c1_8_16, mat_c1_16_24, mat_c1_24_32 --> C[m+1][n:n+32]的逻辑
-
+    vmovups mat_c1_0_8, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c1_8_16, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c1_16_24, (MAT_C, mat_elem_idx)
+    add $32, mat_elem_idx
+    vmovups mat_c1_24_32, (MAT_C, mat_elem_idx)
 .endm
 
 .macro DO_COMPUTE      // 计算 C[m:m+2][n:n+32] += A[m:m+2][k] * B[k:k+8][n:n+32]
 
     // TODO 练习3: 请添加计算C[m:m+2][n:n+32] += A[m:m+2][k] * B[k:k+8][n:n+32]的逻辑
+    vmulps mat_b0_0_8, mat_a0_0_8, mat_temp0
+    vmulps mat_b0_0_8, mat_a1_0_8, mat_temp1
+    vaddps mat_temp0, mat_c0_0_8, mat_c0_0_8
+    vaddps mat_temp1, mat_c1_0_8, mat_c1_0_8
 
+    vmulps mat_b0_8_16, mat_a0_0_8, mat_temp0
+    vmulps mat_b0_8_16, mat_a1_0_8, mat_temp1
+    vaddps mat_temp0, mat_c0_8_16, mat_c0_8_16
+    vaddps mat_temp1, mat_c1_8_16, mat_c1_8_16
+
+    vmulps mat_b0_16_24, mat_a0_0_8, mat_temp0
+    vmulps mat_b0_16_24, mat_a1_0_8, mat_temp1
+    vaddps mat_temp0, mat_c0_16_24, mat_c0_16_24
+    vaddps mat_temp1, mat_c1_16_24, mat_c1_16_24
+    
+    vmulps mat_b0_24_32, mat_a0_0_8, mat_temp0
+    vmulps mat_b0_24_32, mat_a1_0_8, mat_temp1
+    vaddps mat_temp0, mat_c0_24_32, mat_c0_24_32
+    vaddps mat_temp1, mat_c1_24_32, mat_c1_24_32
 .endm
 
 

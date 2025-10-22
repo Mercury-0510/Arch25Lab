@@ -69,7 +69,7 @@ DO_LOOP_M:
     mov loop_m, %rax
     mul DIM_K
     mov %rax, mat_elem_idx
-    add loop_k, mat_elem_idx                    // 计算 m*K+k
+    add loop_k, mat_elem_idx          // 计算 m*K+k
     flds (MAT_A, mat_elem_idx, 4)     // 加载 A[m][k]
 
 DO_LOOP_N:
@@ -81,7 +81,8 @@ DO_LOOP_N:
     fmul %st(1), %st(0)                 // 计算A[m][k] * B[k][n]  --> st(0)
 
     // TODO  练习1: 添加计算A[m][k] * B[k][n+1] --> st(0)的逻辑
-
+    flds 4(MAT_B, mat_elem_idx, 4)
+    fmul %st(2), %st(0)
 
     mov DIM_N, %rax
     mul loop_m
@@ -89,18 +90,42 @@ DO_LOOP_N:
     add loop_n, mat_elem_idx                    // 计算 m*N+n
 
     // TODO 练习1: 请添加加载C[m][n] --> st(1) 和 C[m][n+1] --> st(0)的逻辑
-
     // TODO 练习1: 请添加部分和累加逻辑: C[m][n+1] + A[m][k] * B[k][n+1] 和 C[m][n] + A[m][k] * B[k][n]
+    flds (MAT_C, mat_elem_idx, 4)  
+    faddp %st(2), %st(0)
+    flds 4(MAT_C, mat_elem_idx, 4)
+    faddp %st(1), %st(0)
 
-    fstps (MAT_C, mat_elem_idx, 4)      // 保存C[m][n+1]
+    fstps 4(MAT_C, mat_elem_idx, 4)      // 保存C[m][n+1]
 
     // TODO 练习1: 请添加保存C[m][n]的逻辑
+    fstps (MAT_C, mat_elem_idx, 4)
 
     // TODO 练习1: 请添加N维度的循环更新逻辑
+    add $2, loop_n
 
     cmp DIM_N, loop_n
     jl DO_LOOP_N
+    cmp DIM_N, loop_n
+    je N_DONE
 
+    // 处理剩余的最后一个N维元素
+    sub $1, loop_n
+    mov DIM_N, %rax
+    mul loop_k
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx
+    flds (MAT_B, mat_elem_idx, 4)
+    fmul %st(1), %st(0)
+    mov DIM_N, %rax
+    mul loop_m
+    mov %rax, mat_elem_idx
+    add loop_n, mat_elem_idx
+    flds (MAT_C, mat_elem_idx, 4)
+    faddp %st(1), %st(0)
+    fstps (MAT_C, mat_elem_idx, 4)
+
+N_DONE:
     fstp %st(0)                   // 仅弹出元素
     add $1, loop_m
     cmp DIM_M, loop_m

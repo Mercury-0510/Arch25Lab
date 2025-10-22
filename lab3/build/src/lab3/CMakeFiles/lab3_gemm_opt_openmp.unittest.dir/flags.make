@@ -7,11 +7,11 @@ ASM_DEFINES =
 
 ASM_INCLUDES = -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest/include -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest
 
-ASM_FLAGS =  -masm=att -fPIC -g
+ASM_FLAGS =  -masm=att -g -fPIC -g
 
 CXX_DEFINES = 
 
 CXX_INCLUDES = -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest/include -isystem /home/rhye7/Arch25Lab/lab3/build/_deps/googletest-src/googletest
 
-CXX_FLAGS = -std=gnu++14 -fPIC -g -fopenmp
+CXX_FLAGS = -g -std=gnu++14 -fPIC -g -fopenmp
 
