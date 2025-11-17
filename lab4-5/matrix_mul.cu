@@ -10,7 +10,7 @@
 #include <cmath>
 using namespace std;
 
-const int TILE_WIDTH = 8;	// 定义块block大小
+const int TILE_WIDTH = 16;	// 定义块block大小
 
 /////////
 // Matrix multiplication with shared memory (CUDA Kernel) on the device: C = A * B
