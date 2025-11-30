@@ -3,5 +3,10 @@ lab1/build/
 lab2/build/
 lab3/build/
 
+# Checkpoints
+lab6/llama.c/stories15M.bin
+lab6/llama.c/stories42M.bin
+lab6/llama.c/stories110M.bin
+
 # VS Code settings
 .vscode/
